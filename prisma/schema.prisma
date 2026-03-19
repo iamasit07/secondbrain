@@ -1,0 +1,61 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model cards {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String        @db.Uuid
+  title        String
+  summary      String?
+  source_url   String?
+  content_type String?       @default("article")
+  thumbnail    String?
+  tags         String[]      @default([])
+  ai_tags      String[]      @default([])
+  user_tags    String[]      @default([])
+  raw_content  String?
+  embedding    Unsupported("vector(3072)")? // Google Gemini text-embedding-004 uses 3072 dimensions
+  created_at   DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?     @default(now()) @db.Timestamptz(6)
+  
+  board_cards  board_cards[]
+
+  @@index([user_id], map: "idx_cards_user_id")
+  @@index([created_at(sort: Desc)], map: "idx_cards_created_at")
+}
+
+model boards {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String        @db.Uuid
+  title        String
+  description  String?
+  cover_image  String?
+  is_public    Boolean?      @default(false)
+  share_token  String?       @unique(map: "idx_boards_share_token")
+  created_at   DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?     @default(now()) @db.Timestamptz(6)
+
+  board_cards  board_cards[]
+
+  @@index([user_id], map: "idx_boards_user_id")
+}
+
+model board_cards {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id   String    @db.Uuid
+  card_id    String    @db.Uuid
+  added_at   DateTime? @default(now()) @db.Timestamptz(6)
+
+  board      boards    @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  card       cards     @relation(fields: [card_id], references: [id], onDelete: Cascade)
+
+  @@unique([board_id, card_id])
+  @@index([board_id], map: "idx_board_cards_board_id")
+  @@index([card_id], map: "idx_board_cards_card_id")
+}
