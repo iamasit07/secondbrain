@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -43,20 +44,6 @@ export default function SignupPage() {
     router.push("/login");
   };
 
-  const handleGoogleSignup = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -145,18 +132,30 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={loading}
-            onClick={handleGoogleSignup}
-          >
-            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-              <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-            </svg>
-            Google
-          </Button>
+          <div className="flex w-full justify-center min-h-[40px]">
+              <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setLoading(true);
+                if (credentialResponse.credential) {
+                  const { error } = await supabase.auth.signInWithIdToken({
+                    provider: "google",
+                    token: credentialResponse.credential,
+                  });
+                  if (error) {
+                    toast.error(error.message);
+                    setLoading(false);
+                  } else {
+                    toast.success("Successfully authenticated!");
+                    router.push("/library");
+                    router.refresh();
+                  }
+                }
+              }}
+              onError={() => {
+                toast.error("Google login failed");
+              }}
+            />
+          </div>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{" "}

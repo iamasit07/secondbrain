@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import GoogleAuthProvider from "@/components/GoogleAuthProvider";
 
 export default function RootLayout({
   children,
@@ -41,7 +42,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            {children}
+            <GoogleAuthProvider>
+              {children}
+            </GoogleAuthProvider>
           </TooltipProvider>
           <Toaster richColors position="bottom-right" />
         </ThemeProvider>
