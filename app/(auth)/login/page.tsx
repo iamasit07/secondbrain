@@ -112,28 +112,36 @@ export default function LoginPage() {
           </div>
 
           <div className="flex w-full justify-center min-h-[40px]">
+            {loading ? (
+              <Button disabled variant="outline" className="w-full bg-background border-input">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Authenticating...
+              </Button>
+            ) : (
               <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                setLoading(true);
-                if (credentialResponse.credential) {
-                  const { error } = await supabase.auth.signInWithIdToken({
-                    provider: "google",
-                    token: credentialResponse.credential,
-                  });
-                  if (error) {
-                    toast.error(error.message);
-                    setLoading(false);
-                  } else {
-                    toast.success("Welcome back!");
-                    router.push("/library");
-                    router.refresh();
+                onSuccess={async (credentialResponse) => {
+                  setLoading(true);
+                  if (credentialResponse.credential) {
+                    const { error } = await supabase.auth.signInWithIdToken({
+                      provider: "google",
+                      token: credentialResponse.credential,
+                    });
+                    if (error) {
+                      toast.error(error.message);
+                      setLoading(false);
+                    } else {
+                      toast.success("Welcome back!");
+                      setTimeout(() => {
+                        window.location.href = "/library";
+                      }, 400);
+                    }
                   }
-                }
-              }}
-              onError={() => {
-                toast.error("Google login failed");
-              }}
-            />
+                }}
+                onError={() => {
+                  toast.error("Google login failed");
+                }}
+              />
+            )}
           </div>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">

@@ -62,11 +62,16 @@ export default function BoardsPage() {
       });
 
       if (res.ok) {
+        const data = await res.json();
         toast.success("Board created!");
         setCreateOpen(false);
         setNewTitle("");
         setNewDescription("");
-        fetchBoards();
+        if (data.board?.id) {
+          router.push(`/boards/${data.board.id}`);
+        } else {
+          fetchBoards();
+        }
       }
     } catch {
       toast.error("Failed to create board");
@@ -122,14 +127,16 @@ export default function BoardsPage() {
           <LayoutGrid className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">Boards</h1>
         </div>
-        <Button
-          onClick={() => setCreateOpen(true)}
-          size="sm"
-          className="cursor-pointer gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          New Board
-        </Button>
+        {boards.length > 0 && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            size="sm"
+            className="cursor-pointer gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Board
+          </Button>
+        )}
       </div>
 
       {/* Content */}

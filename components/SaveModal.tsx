@@ -54,6 +54,7 @@ export function SaveModal({ open, onOpenChange, onSuccess }: SaveModalProps) {
 
       setSavedCard(data.card);
       toast.success("Saved to your library!");
+      window.dispatchEvent(new Event("card-saved"));
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -89,7 +90,7 @@ export function SaveModal({ open, onOpenChange, onSuccess }: SaveModalProps) {
                 placeholder="https://example.com/interesting-article"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="pl-10"
+                className="pl-10 truncate min-w-0"
                 autoFocus
                 disabled={loading}
               />

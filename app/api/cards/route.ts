@@ -3,13 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { ingestUrl } from "@/lib/ingestion/pipeline";
 import { prisma } from "@/lib/prisma";
 
-// Simple in-memory rate limiter for POST /api/cards
-// Note: In serverless, this applies per-container instance.
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 10;
 
-// GET /api/cards — List user's cards with optional tag/search filtering
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -60,7 +57,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/cards — Ingest a URL and create a card
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();

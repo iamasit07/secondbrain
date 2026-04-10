@@ -23,6 +23,30 @@ function isSafeUrl(urlString: string): boolean {
   }
 }
 
+async function extractYouTube(url: string): Promise<ExtractionResult | null> {
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const response = await fetch(oembedUrl, {
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    return {
+      title: data.title || "YouTube Video",
+      body: `YouTube Video: ${data.author_name ? "by " + data.author_name : ""}\nLink: ${url}`,
+      source_url: url,
+      content_type: "video",
+      thumbnail: data.thumbnail_url || null,
+      metadata: { extractor: "youtube" },
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function extractWithJina(url: string): Promise<ExtractionResult | null> {
   try {
     const jinaUrl = `https://r.jina.ai/${url}`;
@@ -141,17 +165,19 @@ async function extractOpenGraph(url: string): Promise<ExtractionResult | null> {
   }
 }
 
-/**
- * Main extraction function.
- * Tries Jina Reader first, falls back to Open Graph.
- */
 export async function extractContent(url: string): Promise<ExtractionResult> {
   // Validate SSRF / Safety
   if (!isSafeUrl(url)) {
     throw new Error("Invalid or unsafe URL provided");
   }
 
-  // Tier 1: Jina Reader
+  // Tier 1: YouTube specifics
+  if (url.includes("youtube.com/watch") || url.includes("youtu.be/")) {
+    const ytResult = await extractYouTube(url);
+    if (ytResult) return ytResult;
+  }
+
+  // Tier 2: Jina Reader
   const jinaResult = await extractWithJina(url);
   if (jinaResult) return jinaResult;
 

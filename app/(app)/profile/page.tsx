@@ -19,7 +19,8 @@ import {
 export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   
   // States
   const [name, setName] = useState("");
@@ -44,7 +45,7 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!name.trim()) return;
     
-    setIsUpdating(true);
+    setIsUpdatingName(true);
     try {
       const { error } = await supabase.auth.updateUser({
         data: { name: name.trim() }
@@ -55,7 +56,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       toast.error(error.message || "Failed to update name");
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingName(false);
     }
   };
 
@@ -70,7 +71,7 @@ export default function ProfilePage() {
       return;
     }
 
-    setIsUpdating(true);
+    setIsUpdatingPassword(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       
@@ -81,7 +82,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       toast.error(error.message || "Failed to update password");
     } finally {
-      setIsUpdating(false);
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -160,8 +161,8 @@ export default function ProfilePage() {
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
-              <Button type="submit" disabled={isUpdating || !name.trim()}>
-                {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              <Button type="submit" disabled={isUpdatingName || !name.trim()}>
+                {isUpdatingName ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Save Identity
               </Button>
             </form>
@@ -204,9 +205,9 @@ export default function ProfilePage() {
               <Button 
                 type="submit" 
                 variant="destructive"
-                disabled={isUpdating || !password || password !== confirmPassword}
+                disabled={isUpdatingPassword || !password || password !== confirmPassword}
               >
-                {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isUpdatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Update Password
               </Button>
             </form>
